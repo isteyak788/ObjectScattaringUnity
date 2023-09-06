@@ -1,0 +1,66 @@
+using UnityEngine;
+using UnityEditor;
+
+public class ScatterObjects : MonoBehaviour
+{
+    public GameObject parentObject;
+    public float minScale = 0.5f;
+    public float maxScale = 2.0f;
+    public float minRadius = 1.0f;
+    public float maxRadius = 5.0f;
+    public Vector3 minRotation = Vector3.zero; // Minimum rotation (Euler angles)
+    public Vector3 maxRotation = new Vector3(360, 360, 360); // Maximum rotation (Euler angles)
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(ScatterObjects))]
+    public class ScatterObjectsEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            DrawDefaultInspector();
+
+            ScatterObjects scatterScript = (ScatterObjects)target;
+
+            if (GUILayout.Button("Scatter Child Objects"))
+            {
+                scatterScript.ScatterChildObjects();
+                EditorUtility.SetDirty(scatterScript); // Mark the object as dirty to save changes.
+            }
+        }
+    }
+#endif
+
+    void ScatterChildObjects()
+    {
+        if (parentObject == null)
+        {
+            Debug.LogError("Parent object not assigned!");
+            return;
+        }
+
+        foreach (Transform child in parentObject.transform)
+        {
+            // Random position within specified radius
+            float randomX = Random.Range(-maxRadius, maxRadius);
+            float randomZ = Random.Range(-maxRadius, maxRadius);
+            Vector3 randomPosition = parentObject.transform.position + new Vector3(randomX, 0, randomZ);
+            randomPosition.y = 0; // Optional: You can adjust the Y position if needed.
+
+            // Random rotation within specified range
+            Vector3 randomRotation = new Vector3(
+                Random.Range(minRotation.x, maxRotation.x),
+                Random.Range(minRotation.y, maxRotation.y),
+                Random.Range(minRotation.z, maxRotation.z)
+            );
+
+            // Random scale
+            float randomScale = Random.Range(minScale, maxScale);
+            Vector3 randomScaleVector = new Vector3(randomScale, randomScale, randomScale);
+
+            // Apply random transformation
+            child.position = randomPosition;
+            child.rotation = Quaternion.Euler(randomRotation);
+            child.localScale = randomScaleVector;
+        }
+    }
+}
